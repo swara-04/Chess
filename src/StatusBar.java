@@ -1,10 +1,11 @@
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.*;  // JPanel, JLabel, BorderFactory, FlowLayout, Box
+import java.awt.*;     // Color, Font, BorderLayout, FlowLayout
 
+// The dark bar at the top of the window showing whose turn it is and any important game status
 public class StatusBar extends JPanel {
 
     private final JLabel statusLabel;
-    private final JLabel turnIndicator;
+    private final JLabel turnIndicator; // coloured dot showing current player
 
     public StatusBar() {
         setLayout(new BorderLayout(10, 5));
@@ -26,11 +27,15 @@ public class StatusBar extends JPanel {
         add(left, BorderLayout.CENTER);
     }
 
+    // Called after every move to reflect the new game state
     public void update(GameState gameState) {
         PieceColor turn = gameState.getCurrentTurn();
         GameState.Status status = gameState.getStatus();
 
-        turnIndicator.setForeground(turn == PieceColor.WHITE ? java.awt.Color.WHITE : new java.awt.Color(30, 30, 30));
+        // dot is white for white's turn, near-black for black's turn
+        turnIndicator.setForeground(turn == PieceColor.WHITE
+            ? java.awt.Color.WHITE
+            : new java.awt.Color(30, 30, 30));
 
         String text;
         switch (status) {
@@ -42,9 +47,8 @@ public class StatusBar extends JPanel {
         statusLabel.setText(text);
     }
 
+    // Shown while the AI is computing its move on the background thread
     public void setThinking(boolean thinking) {
-        if (thinking) {
-            statusLabel.setText("Computer is thinking...");
-        }
+        if (thinking) statusLabel.setText("Computer is thinking...");
     }
 }

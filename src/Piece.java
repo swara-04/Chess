@@ -1,7 +1,8 @@
+// Represents a single chess piece on the board - just holds type, color, and whether it's moved
 public class Piece {
     private final PieceType type;
     private final PieceColor color;
-    private boolean hasMoved;
+    private boolean hasMoved; // tracked for castling rights and pawn double-moves
 
     public Piece(PieceType type, PieceColor color) {
         this.type = type;

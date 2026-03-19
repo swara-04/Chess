@@ -1,25 +1,29 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.*;       // JDialog, JPanel, JLabel, JButton, BoxLayout, Box, BorderFactory, etc.
+import java.awt.*;          // Graphics, Graphics2D, Color, Font, Dimension, GridLayout, BasicStroke
+import java.awt.event.*;    // ActionListener, ActionEvent, MouseAdapter, MouseEvent
 
+// Shown at the start of every game so the player can pick their side and difficulty.
+// Uses custom-painted toggle cards instead of radio buttons to keep the dark theme consistent
 public class NewGameDialog extends JDialog {
 
-    private PieceColor playerColor = PieceColor.WHITE;
+    private PieceColor playerColor = PieceColor.WHITE;        // defaults
     private ChessAI.Difficulty difficulty = ChessAI.Difficulty.MEDIUM;
 
+    // dark theme colours - same palette as GameOverDialog
     private static final java.awt.Color BG           = new java.awt.Color(24, 24, 32);
     private static final java.awt.Color CARD_BG      = new java.awt.Color(35, 35, 46);
     private static final java.awt.Color ACCENT       = new java.awt.Color(99, 179, 120);
     private static final java.awt.Color TEXT         = new java.awt.Color(220, 220, 230);
     private static final java.awt.Color SUBTEXT      = new java.awt.Color(140, 140, 160);
-    private static final java.awt.Color SEL_BG       = new java.awt.Color(99, 179, 120, 30);
-    private static final java.awt.Color SEL_BORDER   = new java.awt.Color(99, 179, 120);
-    private static final java.awt.Color UNSEL_BORDER = new java.awt.Color(60, 60, 75);
+    private static final java.awt.Color SEL_BG       = new java.awt.Color(99, 179, 120, 30);  // selected card fill
+    private static final java.awt.Color SEL_BORDER   = new java.awt.Color(99, 179, 120);      // selected card border
+    private static final java.awt.Color UNSEL_BORDER = new java.awt.Color(60, 60, 75);        // unselected card border
 
     public NewGameDialog(JFrame parent) {
-        super(parent, "New Game", true);
-        setUndecorated(true);
+        super(parent, "New Game", true); // modal - blocks until dismissed
+        setUndecorated(true); // no OS title bar, we draw our own background
 
+        // root panel draws a rounded dark rectangle as the dialog background
         JPanel root = new JPanel(new BorderLayout()) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -37,7 +41,7 @@ public class NewGameDialog extends JDialog {
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setOpaque(false);
 
-        // Title
+        // ── Title section ──────────────────────────────────────────────────
         JLabel icon = new JLabel("♟", SwingConstants.CENTER);
         icon.setFont(new Font("Serif", Font.PLAIN, 42));
         icon.setForeground(ACCENT);
@@ -60,14 +64,17 @@ public class NewGameDialog extends JDialog {
         body.add(subtitle);
         body.add(Box.createVerticalStrut(24));
 
-        // Play As
+        // ── Play As section ────────────────────────────────────────────────
         body.add(makeSectionLabel("PLAY AS"));
         body.add(Box.createVerticalStrut(8));
 
-        ToggleCard whiteCard = new ToggleCard("WHITE", "White", "You go first", true, 110);
-        ToggleCard blackCard = new ToggleCard("BLACK", "Black", "Computer goes first", false, 110);
-        whiteCard.addActionListener(e -> { playerColor = PieceColor.WHITE; whiteCard.setSelected(true); blackCard.setSelected(false); });
-        blackCard.addActionListener(e -> { playerColor = PieceColor.BLACK; blackCard.setSelected(true); whiteCard.setSelected(false); });
+        // WHITE/BLACK passed as topText tells the card to draw a coloured dot
+        ToggleCard whiteCard = new ToggleCard("WHITE", "White", "You go first",          true,  110);
+        ToggleCard blackCard = new ToggleCard("BLACK", "Black", "Computer goes first",   false, 110);
+
+        // clicking a card selects it and deselects the other
+        whiteCard.addActionListener(e -> { playerColor = PieceColor.WHITE; whiteCard.setSelected(true);  blackCard.setSelected(false); });
+        blackCard.addActionListener(e -> { playerColor = PieceColor.BLACK; blackCard.setSelected(true);  whiteCard.setSelected(false); });
 
         JPanel colorRow = new JPanel(new GridLayout(1, 2, 10, 0));
         colorRow.setOpaque(false);
@@ -78,13 +85,15 @@ public class NewGameDialog extends JDialog {
         body.add(colorRow);
         body.add(Box.createVerticalStrut(18));
 
-        // Difficulty
+        // ── Difficulty section ─────────────────────────────────────────────
         body.add(makeSectionLabel("DIFFICULTY"));
         body.add(Box.createVerticalStrut(8));
 
-        ToggleCard easyCard   = new ToggleCard("NONE", "Easy",   "Random moves",       false, 68);
+        // NONE = no dot icon, just text (difficulty cards are shorter as a result)
+        ToggleCard easyCard   = new ToggleCard("NONE", "Easy",   "Random moves",        false, 68);
         ToggleCard mediumCard = new ToggleCard("NONE", "Medium", "Looks 2 moves ahead", true,  68);
         ToggleCard hardCard   = new ToggleCard("NONE", "Hard",   "Looks 4 moves ahead", false, 68);
+
         easyCard.addActionListener(e   -> { difficulty = ChessAI.Difficulty.EASY;   easyCard.setSelected(true);   mediumCard.setSelected(false); hardCard.setSelected(false); });
         mediumCard.addActionListener(e -> { difficulty = ChessAI.Difficulty.MEDIUM; mediumCard.setSelected(true); easyCard.setSelected(false);   hardCard.setSelected(false); });
         hardCard.addActionListener(e   -> { difficulty = ChessAI.Difficulty.HARD;   hardCard.setSelected(true);   easyCard.setSelected(false);   mediumCard.setSelected(false); });
@@ -99,7 +108,8 @@ public class NewGameDialog extends JDialog {
         body.add(diffRow);
         body.add(Box.createVerticalStrut(24));
 
-        // Start button
+        // ── Start button ───────────────────────────────────────────────────
+        // custom painted so it matches the green accent without using the default L&F
         JButton startBtn = new JButton("Start Game") {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -122,7 +132,7 @@ public class NewGameDialog extends JDialog {
         startBtn.setFocusPainted(false);
         startBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         startBtn.setAlignmentX(CENTER_ALIGNMENT);
-        startBtn.addActionListener(e -> dispose());
+        startBtn.addActionListener(e -> dispose()); // closing the dialog returns control to GameWindow
         body.add(startBtn);
 
         root.add(body, BorderLayout.CENTER);
@@ -131,6 +141,7 @@ public class NewGameDialog extends JDialog {
         setLocationRelativeTo(parent);
     }
 
+    // Small uppercase label used as a section header above each card row
     private JLabel makeSectionLabel(String text) {
         JLabel lbl = new JLabel(text, SwingConstants.CENTER);
         lbl.setFont(new Font("SansSerif", Font.BOLD, 11));
@@ -140,6 +151,9 @@ public class NewGameDialog extends JDialog {
         return lbl;
     }
 
+    // ── ToggleCard ─────────────────────────────────────────────────────────
+    // A clickable card that highlights when selected. Used for both side and difficulty picking.
+    // topText == "WHITE"/"BLACK" draws a coloured dot, "NONE" skips the dot entirely
     private class ToggleCard extends JPanel {
         private boolean selected;
         private final java.util.List<ActionListener> listeners = new java.util.ArrayList<>();
@@ -157,6 +171,7 @@ public class NewGameDialog extends JDialog {
             boolean hasIcon = !topText.equals("NONE");
 
             if (hasIcon) {
+                // draw a white or black filled circle to represent the side
                 boolean isWhite = topText.equals("WHITE");
                 JLabel topLbl = new JLabel() {
                     @Override protected void paintComponent(Graphics g) {
@@ -181,6 +196,7 @@ public class NewGameDialog extends JDialog {
                         g2.dispose();
                     }
                 };
+                // all three sizes must be set or BoxLayout might collapse the label to zero height
                 topLbl.setPreferredSize(new Dimension(130, 34));
                 topLbl.setMinimumSize(new Dimension(130, 34));
                 topLbl.setMaximumSize(new Dimension(130, 34));
@@ -194,6 +210,7 @@ public class NewGameDialog extends JDialog {
             nameLbl.setForeground(TEXT);
             nameLbl.setAlignmentX(CENTER_ALIGNMENT);
 
+            // html allows text wrapping so long descriptions don't get clipped
             JLabel descLbl = new JLabel("<html><center>" + desc + "</center></html>", SwingConstants.CENTER);
             descLbl.setFont(new Font("SansSerif", Font.PLAIN, 10));
             descLbl.setForeground(SUBTEXT);
@@ -203,6 +220,7 @@ public class NewGameDialog extends JDialog {
             add(Box.createVerticalStrut(3));
             add(descLbl);
 
+            // fire action listeners on click so the parent dialog can update its state
             addMouseListener(new MouseAdapter() {
                 @Override public void mouseClicked(MouseEvent e) {
                     ActionEvent ae = new ActionEvent(ToggleCard.this, ActionEvent.ACTION_PERFORMED, "");
@@ -215,6 +233,7 @@ public class NewGameDialog extends JDialog {
         public void addActionListener(ActionListener l) { listeners.add(l); }
         public void setSelected(boolean sel) { this.selected = sel; repaint(); }
 
+        // draws the card background - green tint + thicker border when selected
         @Override protected void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -224,7 +243,7 @@ public class NewGameDialog extends JDialog {
             g2.setStroke(new BasicStroke(selected ? 2f : 1f));
             g2.drawRoundRect(1, 1, getWidth() - 2, getHeight() - 2, 12, 12);
             g2.dispose();
-            super.paintComponent(g);
+            super.paintComponent(g); // paint children (labels) on top
         }
     }
 

@@ -1,7 +1,9 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
+import javax.swing.*;       // JFrame, JMenuBar, JMenu, JMenuItem, Timer
+import java.awt.*;          // BorderLayout
+import java.awt.event.ActionEvent; // for menu item callbacks
 
+// The main window - owns the board, status bar, and menu.
+// Also acts as the coordinator between dialogs (new game, game over) and the board panel
 public class GameWindow extends JFrame {
 
     private GameState gameState;
@@ -15,13 +17,13 @@ public class GameWindow extends JFrame {
 
         statusBar = new StatusBar();
         setLayout(new BorderLayout());
-        add(statusBar, BorderLayout.NORTH);
+        add(statusBar, BorderLayout.NORTH); // status bar always visible at the top
 
         setupMenuBar();
-        startNewGame();
+        startNewGame(); // show the setup dialog immediately on launch
 
         pack();
-        setLocationRelativeTo(null);
+        setLocationRelativeTo(null); // centre on screen
     }
 
     private void setupMenuBar() {
@@ -38,17 +40,19 @@ public class GameWindow extends JFrame {
         setJMenuBar(menuBar);
     }
 
+    // Shows the setup dialog, wires up a fresh game state + AI, and swaps in a new BoardPanel
     public void startNewGame() {
         NewGameDialog dialog = new NewGameDialog(this);
-        dialog.setVisible(true);
+        dialog.setVisible(true); // blocks until the player hits Start
 
         PieceColor playerColor = dialog.getPlayerColor();
         ChessAI.Difficulty difficulty = dialog.getDifficulty();
-        PieceColor aiColor = playerColor.opposite();
+        PieceColor aiColor = playerColor.opposite(); // AI always plays the other side
 
         ChessAI ai = new ChessAI(difficulty, aiColor);
         gameState = new GameState();
 
+        // swap out the old board panel if one exists
         if (boardPanel != null) remove(boardPanel);
         boardPanel = new BoardPanel(gameState, statusBar, playerColor, ai, this);
         add(boardPanel, BorderLayout.CENTER);
@@ -58,8 +62,9 @@ public class GameWindow extends JFrame {
         pack();
     }
 
+    // Called by BoardPanel when the game ends.
+    // Small delay so the player can see the final board state before the dialog pops up
     public void showGameOver() {
-        // Small delay so the final board state renders before the dialog pops
         Timer t = new Timer(400, e -> {
             GameOverDialog dlg = new GameOverDialog(this, gameState, boardPanel.getPlayerColor());
             dlg.setVisible(true);

@@ -1,21 +1,19 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.*;   // JDialog, JPanel, JLabel, JButton, BoxLayout, Box, SwingConstants, BorderFactory
+import java.awt.*;      // Graphics, Graphics2D, Color, Font, FontMetrics, Dimension, GridLayout, BorderLayout
+import java.awt.event.*; // ActionListener (via lambda)
 
-/**
- * Shown when the game ends — displays result and offers Play Again / Quit.
- */
+// Shown at the end of every game - tells the player what happened and lets them play again or quit
 public class GameOverDialog extends JDialog {
 
     public enum Result { PLAY_AGAIN, QUIT }
-    private Result result = Result.QUIT;
+    private Result result = Result.QUIT; // default to quit if they close the dialog
 
+    // same dark theme as NewGameDialog
     private static final java.awt.Color BG      = new java.awt.Color(24, 24, 32);
-    private static final java.awt.Color CARD_BG = new java.awt.Color(35, 35, 46);
     private static final java.awt.Color ACCENT  = new java.awt.Color(99, 179, 120);
     private static final java.awt.Color TEXT    = new java.awt.Color(220, 220, 230);
     private static final java.awt.Color SUBTEXT = new java.awt.Color(140, 140, 160);
-    private static final java.awt.Color BTN_SEC = new java.awt.Color(55, 55, 70);
+    private static final java.awt.Color BTN_SEC = new java.awt.Color(55, 55, 70); // secondary button (quit)
 
     public GameOverDialog(JFrame parent, GameState gameState, PieceColor playerColor) {
         super(parent, "Game Over", true);
@@ -23,16 +21,16 @@ public class GameOverDialog extends JDialog {
         setBackground(new java.awt.Color(0, 0, 0, 0));
 
         GameState.Status status = gameState.getStatus();
-        PieceColor turn = gameState.getCurrentTurn();
+        PieceColor turn = gameState.getCurrentTurn(); // whoever's turn it is has just lost (or stalemated)
 
-        // Figure out what happened
+        // work out what to show based on the game result
         String emoji, headline, subline;
         if (status == GameState.Status.STALEMATE) {
             emoji = "🤝";
             headline = "Stalemate!";
             subline = "It's a draw — no legal moves.";
         } else {
-            // Checkmate — the side whose turn it is LOST
+            // in checkmate the side to move is the loser, so the winner is the opposite
             PieceColor winner = turn.opposite();
             boolean playerWon = winner == playerColor;
             if (playerWon) {
@@ -46,7 +44,7 @@ public class GameOverDialog extends JDialog {
             }
         }
 
-        // Root panel with rounded corners
+        // root panel draws its own rounded background since we're undecorated
         JPanel root = new JPanel(new BorderLayout()) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -59,7 +57,6 @@ public class GameOverDialog extends JDialog {
         root.setOpaque(false);
         root.setBorder(BorderFactory.createEmptyBorder(36, 44, 28, 44));
 
-        // Content
         JPanel body = new JPanel();
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setOpaque(false);
@@ -85,7 +82,7 @@ public class GameOverDialog extends JDialog {
         body.add(subLbl);
         body.add(Box.createVerticalStrut(28));
 
-        // Buttons
+        // play again is the primary action (green), quit is secondary (dark)
         JButton playAgainBtn = makeButton("Play Again", ACCENT, java.awt.Color.WHITE);
         JButton quitBtn      = makeButton("Quit",       BTN_SEC, SUBTEXT);
 
@@ -106,24 +103,26 @@ public class GameOverDialog extends JDialog {
         setLocationRelativeTo(parent);
     }
 
+    // Reusable styled button - draws its own rounded background so we can skip the default L&F
     private JButton makeButton(String text, java.awt.Color bg, java.awt.Color fg) {
         JButton btn = new JButton(text) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(getModel().isRollover() ? bg.brighter() : bg);
+                g2.setColor(getModel().isRollover() ? bg.brighter() : bg); // brighten on hover
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
                 g2.setColor(fg);
                 g2.setFont(getFont());
                 FontMetrics fm = g2.getFontMetrics();
-                g2.drawString(getText(), (getWidth() - fm.stringWidth(getText())) / 2,
+                g2.drawString(getText(),
+                    (getWidth()  - fm.stringWidth(getText())) / 2,
                     (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
                 g2.dispose();
             }
         };
         btn.setFont(new Font("SansSerif", Font.BOLD, 14));
         btn.setPreferredSize(new Dimension(120, 44));
-        btn.setContentAreaFilled(false);
+        btn.setContentAreaFilled(false); // we're drawing the background ourselves
         btn.setBorderPainted(false);
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
